@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-def read_time_string(time_str: str) -> datetime:
+def as_datetime(time_str: str) -> datetime:
     """Parse time from ISO like format to datetime object.
 
     :argument time_str:
@@ -20,11 +20,11 @@ def layover(later: datetime, earlier: datetime) -> float:
     return (later - earlier).seconds / 3600
 
 
-def format_time_difference(later: datetime, earlier: datetime) -> str:
+def format_time_difference(later: str, earlier: str) -> str:
     """Return time difference in human-readable form.
 
     :param later: Later time
     :param earlier: Earlier time
     :return: Difference in time
     """
-    return str(later - earlier)
+    return str(as_datetime(later) - as_datetime(earlier))

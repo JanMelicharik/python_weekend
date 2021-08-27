@@ -14,12 +14,6 @@ def read_criteria():
     parser.add_argument("--pax", required=False, help="Number of passengers.", default=1, type=int)
     parser.add_argument("--max-price", required=False, type=float)
     parser.add_argument(
-        "--max-trip-duration",
-        required=False,
-        help="Max duration of trip in hours including layovers.",
-        type=float
-    )
-    parser.add_argument(
         "--stay-duration",
         required=False,
         help="Number of days at target destination in case of return trip.",
@@ -58,7 +52,6 @@ def validate(args):
     args.bags - Non negative integer
     args.pax - Integer larger than 0
     args.max_price - Non negative float
-    args.max_duration - Non negative float
 
     :param args:
     :return: None
@@ -74,6 +67,3 @@ def validate(args):
 
     if args.max_price is not None and args.max_price <= 0:
         raise ValidationError("Maximum price cannot be zero or lower.")
-
-    if args.max_trip_duration is not None and args.max_trip_duration < 0:
-        raise ValidationError("Maximum duration cannot be zero or lower.")
