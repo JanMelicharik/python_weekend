@@ -75,5 +75,5 @@ def validate(args):
     if args.max_price is not None and args.max_price <= 0:
         raise ValidationError("Maximum price cannot be zero or lower.")
 
-    if args.max_duration is not None and args.max_duration < 0:
+    if args.max_trip_duration is not None and args.max_trip_duration < 0:
         raise ValidationError("Maximum duration cannot be zero or lower.")

@@ -1,5 +1,5 @@
-from typing import List, Dict, Optional
-from .helpers import get_layover
+from .helpers import layover, format_time_difference
+from typing import List, Dict
 
 
 class RouteMaster:
@@ -10,58 +10,59 @@ class RouteMaster:
     ):
         self.criteria = criteria
         self.flights = flights
+        self.routes = None
 
-    def search(self):
-        single = self._single_flight_search()
-        layover = self._layover_search()
-
-    def _single_flight_search(self, roundtrip: bool = False) -> List[Optional[Dict]]:
-        """Not optimal"""
-        connections = []
+    def find_routes(self):
+        routes = []
         for flight in self.flights:
-            if (
-                flight["origin"] == self.criteria.origin
-                and flight["destination"] == self.criteria.destination
-                and flight["bags_allowed"] >= self.criteria.bags
-            ):
-                connections.append(
+            if flight["origin"] == self.criteria.origin:
+                if flight["destination"] == self.criteria.destination:
+                    routes.append([flight])
+                else:
+                    next_flights = self._explore(flight["destination"], [flight["origin"]], flight["arrival"])
+                    if next_flights:
+                        routes.append([flight] + next_flights)
+
+        self.routes = self._post_processing(routes)
+
+    def _explore(self, origin, visited, prev_arrival):
+        for flight in self.flights:
+            if flight["origin"] == origin:
+                if (
+                    flight["destination"] == self.criteria.destination
+                    and (
+                        flight["departure"] > prev_arrival
+                        and (1 <= layover(flight["departure"], prev_arrival) <= 6)
+                    )
+                ):
+                    return [flight]
+                elif flight["destination"] not in visited:
+                    next_flights = self._explore(
+                        flight["destination"],
+                        visited + [flight["origin"]],
+                        flight["arrival"]
+                    )
+                    if next_flights:
+                        return [flight] + next_flights
+
+        return []
+
+    def _post_processing(self, routes) -> List[Dict]:
+        final_routes = []
+        if routes:
+            for route in routes:
+                flights_price = sum([f["base_price"] for f in route]) * self.criteria.pax
+                bags_price = sum([f["base_price"] for f in route]) * self.criteria.pax
+                final_routes.append(
                     {
-                        "flights": [flight]
+                        "flights": route,
+                        "bags_allowed": min([f["bags_allowed"] for f in route]),
+                        "bags_count": self.criteria.bags,
+                        "destination": self.criteria.destination,
+                        "origin": self.criteria.origin,
+                        "total_price": flights_price + bags_price,
+                        "travel_time": format_time_difference(route[-1]["arrival"], route[0]["departure"])
                     }
                 )
 
-        if roundtrip:
-            for connection in connections:
-                for flight in self.flights:
-                    if (
-                        flight["origin"] == connection["flights"][0]["destination"]
-                        and flight["destination"] == connection["flights"][0]["origin"]
-                        and flight["bags_allowed"] >= self.criteria.bags
-                        and get_layover(connection["flights"][0], flight) > self.criteria.stay_duration
-                    ):
-                        connection["flights"].append(flight)
-                        connection["total_price"] = sum(
-                            [fl["base_price"] for fl in connection["flights"]]
-                        ) * self.criteria.pax
-
-        return results
-
-    def _layover_search(self) -> [List[Optional[Dict]]]:
-        """To be implemented"""
-        return []
-
-    def _create_graph(self):
-        """Not finished"""
-        edges = []
-        for flight in self.flights:
-            for another_flight in self.flights:
-                layover = get_layover(flight, another_flight)
-                if (
-                    flight["destination"] == another_flight["origin"]
-                    and flight["bags_allowed"] >= self.criteria.bags
-                    and another_flight["bags_allowed"] >= self.criteria.bags
-                    and 1 >= layover <= 6
-                ):
-                    edges.append(f"{flight['id']}-{another_flight['id']}")
-
-        return edges
+        return sorted(final_routes, key=lambda item: item.get("total_price", 0))

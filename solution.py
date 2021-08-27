@@ -4,8 +4,7 @@ from helpers.search import RouteMaster
 
 # [X] Load data
 # [X] Parse data
-# [ ] Create a graph
-# [ ] Run algorithm (Depth first search) - Find all routes between A and B
+# [X] Find connections
 # [ ] Sort results
 # [ ] Write README
 
@@ -34,8 +33,12 @@ def main():
     flights = loader.load_data(criteria.data)
 
     route_master = RouteMaster(criteria, flights)
-    single_flight_connections = route_master.single_flight_search()
+    route_master.find_routes()
 
+    for r in route_master.routes:
+        for k, v in r.items():
+            print(k, v)
+        print()
 
 
 if __name__ == '__main__':
