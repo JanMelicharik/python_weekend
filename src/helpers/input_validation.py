@@ -13,6 +13,7 @@ def read_criteria():
     parser.add_argument("--return", required=False, default="false", dest="return_trip", type=asbool)
     parser.add_argument("--pax", required=False, help="Number of passengers.", default=1, type=int)
     parser.add_argument("--max-price", required=False, type=float)
+    parser.add_argument("--date", required=False, dest="dep_date", type=str, help="Date of departure.")
     parser.add_argument(
         "--stay-duration",
         required=False,
@@ -67,3 +68,6 @@ def validate(args):
 
     if args.max_price is not None and args.max_price <= 0:
         raise ValidationError("Maximum price cannot be zero or lower.")
+
+    if not re.search(r"\d{4}-\d{2}-\d{2}", args.dep_date):
+        raise ValidationError("Invalid date.")

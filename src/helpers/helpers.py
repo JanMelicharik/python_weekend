@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 import httpx
 
@@ -37,3 +38,12 @@ def convert_to_eur(amount: float, from_currency: str) -> float:
     rates = response.json()
 
     return amount * rates[from_currency]
+
+
+def stringify_data(data) -> str:
+    return json.dumps(data)
+
+
+def jsonize_data(data):
+    return json.loads(data)
+
